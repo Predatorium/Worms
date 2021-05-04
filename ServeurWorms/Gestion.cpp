@@ -16,6 +16,11 @@ int Gestion::Init(int _port)
 	// Si il est libre on ajoute le listener au selector
 	selector.add(listener);
 	// On crée un container pour stocker tout les sockets
+
+	DispoId.push_back(4);
+	DispoId.push_back(3);
+	DispoId.push_back(2);
+	DispoId.push_back(1);
 }
 
 void Gestion::Update(const float& dt)
@@ -36,6 +41,7 @@ void Gestion::Update(const float& dt)
 
 			for (int i = 0; i < client.size(); i++) {
 				if (!client[i]->Ready) {
+					DispoId.push_back(client[i]->Id);
 					client.erase(client.begin() + i);
 					i--;
 				}
@@ -52,7 +58,8 @@ void Gestion::Update(const float& dt)
 
 				sf::Packet sendPacket;									// Déclaration d'un packet
 				sendPacket << state << Disconnect << client[i]->Id;
-
+				
+				DispoId.push_back(client[i]->Id);
 				client.erase(client.begin() + i);
 				i--;
 
@@ -83,8 +90,8 @@ void Gestion::CheckNewPlayer()
 		socket->socket = new sf::TcpSocket();
 		listener.accept(*socket->socket);
 		selector.add(*socket->socket);
-		static int id = 0;
-		id++;
+		int id = DispoId.back();
+		DispoId.pop_back();
 
 		int type;
 
@@ -167,6 +174,7 @@ void Gestion::WaitingFullReday()
 						sf::Packet sendPacket;					// Déclaration d'un packet
 						sendPacket << state << Disconnect << client[i]->Id;
 
+						DispoId.push_back(client[i]->Id);
 						client.erase(client.begin() + i);
 						i--;
 

@@ -30,6 +30,8 @@ public:
 	std::string Name3{ "Benjamin" };
 	std::string Name4{ "Susan" };
 
+	std::vector<int> DispoId;
+
 	sf::TcpListener listener;		// Déclaration d'un listener
 	sf::SocketSelector selector;	// Déclaration d'un SocketSelector
 	std::vector<Client*> client;

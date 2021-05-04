@@ -35,6 +35,13 @@ void Client::CheckPacket(std::vector<Client*>& client)
 			sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
 			sendPacket << state << Add_Worms << Id << WormsId; // Préparation d'un packet
 
+			for (int i = 0; i < Worms.size(); i++) {
+				if (Worms[i].second == WormsId) {
+					Worms.erase(Worms.begin() + i);
+					i--;
+				}
+			}
+
 			for (int j = 0; j < client.size(); j++) {
 				if (client[j] != this) {
 					client[j]->socket->send(sendPacket);
