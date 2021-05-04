@@ -14,13 +14,13 @@ void Client::CheckPacket(std::vector<Client*>& client)
 
 		if (type == Add_Worms) {
 			sf::Vector2f pos;
-			int 
-			receivePacket >> pos.x >> pos.y >>;
+			int WormsId;
+			receivePacket >> WormsId >> pos.x >> pos.y;
 
-			Worms.push_back(pos);
+			Worms.push_back(std::make_pair(pos, WormsId));
 
 			sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
-			sendPacket << state << Add_Worms << Id << pos.x << pos.y; // Préparation d'un packet
+			sendPacket << state << Add_Worms << Id << WormsId << pos.x << pos.y; // Préparation d'un packet
 
 			for (int j = 0; j < client.size(); j++) {
 				if (client[j] != this) {
@@ -28,15 +28,12 @@ void Client::CheckPacket(std::vector<Client*>& client)
 				}
 			}
 		}
-
 		if (type == Delete_Worms) {
-			sf::Vector2f pos;
-			receivePacket >> pos.x >> pos.y;
-
-
+			int WormsId;
+			receivePacket >> WormsId;
 
 			sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
-			sendPacket << state << Add_Worms << Id << pos.x << pos.y; // Préparation d'un packet
+			sendPacket << state << Add_Worms << Id << WormsId; // Préparation d'un packet
 
 			for (int j = 0; j < client.size(); j++) {
 				if (client[j] != this) {
@@ -45,16 +42,38 @@ void Client::CheckPacket(std::vector<Client*>& client)
 			}
 		}
 
+		if (type == Attack) {
+			sf::Vector2f Pos;
+			float Angle;
+			int AttackType;
+			receivePacket >> Angle >> Pos.x >> Pos.y >> AttackType;
+
+			sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
+			sendPacket << state << Attack << Id << Angle << Pos.x << Pos.y << AttackType; // Préparation d'un packet
+
+			// envoi de ce paquet à tous les clients sauf à celui qui à envoyé
+			for (int j = 0; j < client.size(); j++) {
+				if (client[j] != this) {
+					client[j]->socket->send(sendPacket);
+				}
+			}
+		}
 		if (type == Update_Pos) {
+			int WormsId;
+			receivePacket >> WormsId;
 			for (int i = 0; i < Worms.size(); i++) {
-				receivePacket >> Worms[i].x >> Worms[i].y;
+				if (WormsId == Worms[i].second) {
+					receivePacket >> Worms[i].first.x >> Worms[i].first.y;
+				}
 			}
 
 			sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
-			sendPacket << state << Update_Pos << Id; // Préparation d'un packet
+			sendPacket << state << Update_Pos << Id << WormsId; // Préparation d'un packet
 
 			for (int i = 0; i < Worms.size(); i++) {
-				receivePacket << Worms[i].x << Worms[i].y;
+				if (WormsId == Worms[i].second) {
+					sendPacket << Worms[i].first.x << Worms[i].first.y;
+				}
 			}
 
 			// envoi de ce paquet à tous les clients sauf à celui qui à envoyé

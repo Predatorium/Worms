@@ -31,6 +31,10 @@ void Gestion::Update(const float& dt)
 		case Game:
 
 			for (int i = 0; i < client.size(); i++) {
+				client[i]->CheckPacket(client);
+			}
+
+			for (int i = 0; i < client.size(); i++) {
 				if (!client[i]->Ready) {
 					client.erase(client.begin() + i);
 					i--;

@@ -9,20 +9,20 @@ Map::Map()
 
 void Map::DestroyMap(float radius, sf::Vector2f pos)
 {
-	sf::RenderTexture texture;
-	texture.create(1920, 1080);
+	sf::RenderTexture Rtexture;
+	Rtexture.create(1920, 1080);
 
-	texture.clear(sf::Color::White);
-	texture.draw(Sprite);
+	Rtexture.clear(sf::Color::White);
+	Rtexture.draw(Sprite);
 
 	sf::CircleShape tmp(radius);
 	tmp.setOrigin(radius, radius);
 	tmp.setPosition(pos);
-	texture.draw(tmp);
+	Rtexture.draw(tmp);
 
-	texture.display();
+	Rtexture.display();
 
-	Texture = texture.getTexture();
+	Texture = Rtexture.getTexture();
 	map = Texture.copyToImage();
 	Sprite.setTexture(Texture);
 }
