@@ -4,6 +4,7 @@
 GameState::GameState(State_Manager* game, sf::RenderWindow* _window)
 	: State(game, _window)
 {
+	std::vector<std::vector<sf::Vector2f>> PosTeam;
 	PosTeam.push_back(std::vector<sf::Vector2f>());
 
 	PosTeam[0].push_back(sf::Vector2f(1800, 100));

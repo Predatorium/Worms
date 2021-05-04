@@ -11,10 +11,11 @@ class GameState : public State
 private:
 	Map Carte;
 	bool Click{ false };
-	std::vector<std::vector<sf::Vector2f>> PosTeam;
+
 	std::vector<Joueur> Player;
 	std::vector<Arme> Arme;
 	std::vector<Explosion> Explo;
+
 	bool Switch{ false };
 	int Me{ 0 };
 	int Turn{ 0 };
