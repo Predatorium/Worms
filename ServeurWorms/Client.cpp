@@ -53,10 +53,11 @@ void Client::CheckPacket(std::vector<Client*>& client)
 			sf::Vector2f Pos;
 			float Angle;
 			int AttackType;
-			receivePacket >> Angle >> Pos.x >> Pos.y >> AttackType;
+			float Power;
+			receivePacket >> Angle >> Power >> Pos.x >> Pos.y >> AttackType;
 
 			sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
-			sendPacket << state << Attack << Id << Angle << Pos.x << Pos.y << AttackType; // Préparation d'un packet
+			sendPacket << state << Attack << Id << Angle << Power << Pos.x << Pos.y << AttackType; // Préparation d'un packet
 
 			// envoi de ce paquet à tous les clients sauf à celui qui à envoyé
 			for (int j = 0; j < client.size(); j++) {

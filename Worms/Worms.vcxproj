@@ -142,7 +142,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Canon.cpp" />
+    <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="Explosion.cpp" />
     <ClCompile Include="GameState.cpp" />
+    <ClCompile Include="Joueur.cpp" />
     <ClCompile Include="Loop.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Source.cpp" />
@@ -151,7 +155,11 @@
     <ClCompile Include="Worms.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Canon.h" />
+    <ClInclude Include="Entity.h" />
+    <ClInclude Include="Explosion.h" />
     <ClInclude Include="GameState.h" />
+    <ClInclude Include="Joueur.h" />
     <ClInclude Include="Loop.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="State.h" />

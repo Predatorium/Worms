@@ -13,50 +13,98 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Fichiers d%27en-tête\State">
+      <UniqueIdentifier>{9a4d273a-c48d-408c-973d-215812c652c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\State">
+      <UniqueIdentifier>{10eebd09-9b20-4bbf-a3df-65b9a2656605}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête\Core">
+      <UniqueIdentifier>{33c3888e-6c77-4a3a-828b-fc17ebeec6d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Core">
+      <UniqueIdentifier>{0ac56fdd-3afc-46de-8196-8d518fc3228f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête\Entity">
+      <UniqueIdentifier>{32343b87-1e15-4dbe-a608-1a3dd50caab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Entity">
+      <UniqueIdentifier>{9d026bef-6917-4566-8966-695381821ce0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête\Entity\Controlable">
+      <UniqueIdentifier>{54016043-d6c7-4801-b9b9-93a3a7990d53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Entity\Controlable">
+      <UniqueIdentifier>{df5f3a33-6c81-4cd4-94d4-fb6e1c354c0f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Loop.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="State_Manager.cpp">
-      <Filter>Fichiers sources</Filter>
+      <Filter>Fichiers sources\State</Filter>
     </ClCompile>
     <ClCompile Include="State.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Map.cpp">
-      <Filter>Fichiers sources</Filter>
+      <Filter>Fichiers sources\State</Filter>
     </ClCompile>
     <ClCompile Include="GameState.cpp">
-      <Filter>Fichiers sources</Filter>
+      <Filter>Fichiers sources\State</Filter>
+    </ClCompile>
+    <ClCompile Include="Map.cpp">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Loop.cpp">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source.cpp">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Fichiers sources\Entity</Filter>
     </ClCompile>
     <ClCompile Include="Worms.cpp">
+      <Filter>Fichiers sources\Entity\Controlable</Filter>
+    </ClCompile>
+    <ClCompile Include="Joueur.cpp">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Canon.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Explosion.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Loop.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="Times.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="State_Manager.h">
-      <Filter>Fichiers d%27en-tête</Filter>
+      <Filter>Fichiers d%27en-tête\State</Filter>
     </ClInclude>
     <ClInclude Include="State.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="Map.h">
-      <Filter>Fichiers d%27en-tête</Filter>
+      <Filter>Fichiers d%27en-tête\State</Filter>
     </ClInclude>
     <ClInclude Include="GameState.h">
-      <Filter>Fichiers d%27en-tête</Filter>
+      <Filter>Fichiers d%27en-tête\State</Filter>
+    </ClInclude>
+    <ClInclude Include="Loop.h">
+      <Filter>Fichiers d%27en-tête\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Times.h">
+      <Filter>Fichiers d%27en-tête\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h">
+      <Filter>Fichiers d%27en-tête\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Fichiers d%27en-tête\Entity</Filter>
     </ClInclude>
     <ClInclude Include="Worms.h">
+      <Filter>Fichiers d%27en-tête\Entity\Controlable</Filter>
+    </ClInclude>
+    <ClInclude Include="Joueur.h">
+      <Filter>Fichiers d%27en-tête\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Canon.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Explosion.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>
