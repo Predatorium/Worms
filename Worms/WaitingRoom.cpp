@@ -135,26 +135,41 @@ void WaitingRoom::HandleEvents(sf::Event e)
 	default:
 		break;
 	}
+
+	if (!window->isOpen()) {
+		sf::Packet sendPacket;				// Déclaration d'un packet
+		sendPacket << Disconnect;			// Préparation d'un packet
+		Socket->send(sendPacket);			// Envoi de ce paquet au serveur
+	}
 }
 
 void WaitingRoom::Update(const float& dt)
 {
+	timer += dt;
+
 	ReceptionServeur();
 
 	if (!Click) {
 		if (Current == Etat::Disco) {
-			Click = Connecting.Update();
+			Click = Connecting.Update(window);
 		}
 
 		if (Current == Etat::Connect) {
-			Click = IReady.Update();
-			Click = INoReady.Update();
+			Click = IReady.Update(window);
+			Click = INoReady.Update(window);
 		}
 
-		Click = Quit.Update();
+		Click = Quit.Update(window);
 	}
 	if (!sf::Mouse::isButtonPressed(sf::Mouse::Left))
 		Click = false;
+
+	if (timer > 2.f) {
+		sf::Packet sendPacket;				// Déclaration d'un packet
+		sendPacket << 5000;					// Préparation d'un packet
+		Socket->send(sendPacket);			// Envoi de ce paquet au serveur
+		timer = 0;
+	}
 }
 
 void WaitingRoom::Display()

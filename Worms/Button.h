@@ -23,7 +23,7 @@ public:
 	void Set_Position(sf::Vector2f _pos);
 	void Set_Text(std::string _texte);
 
-	bool Update();
+	bool Update(sf::RenderWindow* _window);
 	void Display(sf::RenderWindow* _window);
 
 protected:

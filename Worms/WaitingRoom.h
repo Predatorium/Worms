@@ -16,6 +16,8 @@ private:
 	bool Click{ true };
 	std::string Ip;
 
+	float timer{ 0 };
+
 	enum class Etat { Disco, Connect };
 	Etat Current{ Etat::Disco };
 

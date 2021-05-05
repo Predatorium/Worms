@@ -59,10 +59,10 @@ void Button::Set_Position(sf::Vector2f _pos)
 	Shape.setPosition(_pos);
 }
 
-bool Button::Update()
+bool Button::Update(sf::RenderWindow* _window)
 {
 	Set_ColorText(Out);
-	if (Shape.getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition()))) {
+	if (Shape.getGlobalBounds().contains(sf::Vector2f(sf::Mouse::getPosition(*_window)))) {
 		Set_ColorText(In);
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 			f();

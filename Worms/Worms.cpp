@@ -32,10 +32,10 @@ void Worms::Jump(float jump, sf::Image& image)
 	}
 }
 
-void Worms::Shoot(std::vector<Arme>& shoot, Arme::Type arme)
+void Worms::Shoot(std::vector<Arme>& shoot, int id, Arme::Type arme)
 {
 	shoot.push_back(Arme(Shape.getPosition(),
-		Angle, arme));
+		Angle, id, arme));
 }
 
 void Worms::Update(const float& dt, sf::Image& image)

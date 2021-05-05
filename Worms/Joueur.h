@@ -10,6 +10,7 @@ private:
 	std::map<int, Worms> Team;
 	int WormsTurn{ 0 };
 	int Id{ 0 };
+	float TimerSend{ 0 };
 	std::string Name{ "Me" };
 	bool Shoot{ true };
 
@@ -27,7 +28,8 @@ private:
 		Disconnect,
 		AddOtherPlayer,
 		Add_Worms,
-		Delete_Worms
+		Delete_Worms,
+		EXPLO,
 	};
 
 public:
@@ -58,6 +60,7 @@ public:
 	void Damage(int damage, sf::Vector2f position, float radius);
 
 	void SetPos(sf::Vector2f pos, int id);
+	void SetLife(int life, int id);
 	void Delete(int id);
 	void Display(sf::RenderWindow* window, sf::Font& font);
 

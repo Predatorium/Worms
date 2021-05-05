@@ -26,11 +26,12 @@ Joueur::Joueur(std::vector<sf::Vector2f> pos, int id,
 	int i = 0;
 	for (auto& it : pos) {
 		Team.emplace(std::make_pair(i, Worms(it, tmp)));
-		i++;
 
 		sf::Packet packet;
 		packet << 1 << Add_Worms << i << it.x << it.y;
 		Socket->send(packet);
+		
+		i++;
 	}
 }
 
@@ -70,7 +71,7 @@ void Joueur::Controle(sf::Image& image, std::vector<Arme>& shoot, const float& d
 					Team[WormsTurn].Jump(400, image);
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && Shoot) {
-					Team[WormsTurn].Shoot(shoot, Weapon);
+					Team[WormsTurn].Shoot(shoot, Id, Weapon);
 
 					int arme = static_cast<int>(Weapon);
 
@@ -81,6 +82,8 @@ void Joueur::Controle(sf::Image& image, std::vector<Arme>& shoot, const float& d
 					Socket->send(packet);
 
 					Shoot = false;
+
+					NextWorms();
 				}
 				else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E))
 					Shoot = true;
@@ -100,22 +103,28 @@ void Joueur::Damage(int damage, sf::Vector2f position, float radius)
 	sf::CircleShape tmp(radius);
 	tmp.setOrigin(radius, radius);
 	tmp.setPosition(position);
+
 	for (auto& it : Team) {
 		if (BetweenGlobalBoundsAndCircle(it.second.Get_Shape(), position, tmp)) {
 			it.second.Damage(damage);
-			it.second.Move(normalize(it.second.Get_Position() - position) * 1000.f);
+			it.second.Move(normalize(it.second.Get_Position() - position) * 500.f);
 		}
 	}
 }
 
 void Joueur::Update(const float& dt, sf::Image& image)
 {
+	TimerSend += dt;
+
 	for (auto& it : Team) {
 		it.second.Update(dt, image);
 
-		sf::Packet packet;
-		packet << 1 << Update_Pos << it.first << it.second.Get_Position().x << it.second.Get_Position().y;
-		Socket->send(packet);
+		if (TimerSend > 0.02f) {
+			sf::Packet packet;
+			packet << 1 << Update_Pos << it.first << it.second.Get_Position().x <<
+				it.second.Get_Position().y << it.second.Get_Life();
+			Socket->send(packet);
+		}
 
 		if (it.second.Movable)
 			it.second.StopVeloX();
@@ -123,17 +132,19 @@ void Joueur::Update(const float& dt, sf::Image& image)
 		it.second.Movable = false;
 	}
 
-	for (auto it = std::begin(Team); it != std::end(Team);) {
+	if (TimerSend > 0.02f) {
+		TimerSend = 0;
+	}
+
+	for (auto it = std::begin(Team); it != std::end(Team); it++) {
 		if (it->second.Get_Life() <= 0) {
 
 			sf::Packet packet;
 			packet << 1 << Delete_Worms << it->first;
 			Socket->send(packet);
 
-			it = Team.erase(it);
-		}
-		else {
-			it++;
+			Team.erase(it);
+			break;
 		}
 	}
 }
@@ -148,7 +159,7 @@ void Joueur::Display(sf::RenderWindow* window, sf::Font& font)
 }
 
 OtherPlayer::OtherPlayer(std::vector<sf::Vector2f> pos, int id,
-	std::string name) : Name{ name }
+	std::string name) : Name{ name }, Id{ id }
 {
 	sf::Color tmp;
 	switch (id)
@@ -181,19 +192,11 @@ void OtherPlayer::Damage(int damage, sf::Vector2f position, float radius)
 	sf::CircleShape tmp(radius);
 	tmp.setOrigin(radius, radius);
 	tmp.setPosition(position);
+
 	for (auto& it : Team) {
 		if (BetweenGlobalBoundsAndCircle(it.second.Get_Shape(), position, tmp)) {
 			it.second.Damage(damage);
-			it.second.Move(normalize(it.second.Get_Position() - position) * 1000.f);
-		}
-	}
-
-	for (auto it = std::begin(Team); it != std::end(Team);) {
-		if (it->second.Get_Life() <= 0) {
-			it = Team.erase(it);
-		}
-		else {
-			it++;
+			it.second.Move(normalize(it.second.Get_Position() - position) * 500.f);
 		}
 	}
 }
@@ -201,6 +204,11 @@ void OtherPlayer::Damage(int damage, sf::Vector2f position, float radius)
 void OtherPlayer::SetPos(sf::Vector2f pos, int id)
 {
 	Team.find(id)->second.Set_Position(pos);
+}
+
+void OtherPlayer::SetLife(int life, int id)
+{
+	Team.find(id)->second.Set_Life(life);
 }
 
 void OtherPlayer::Delete(int id)

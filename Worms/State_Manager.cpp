@@ -28,8 +28,10 @@ void State_Manager::HandleEvents(sf::Event e)
 
 void State_Manager::Update(const float& dt)
 {
-	if (!states.empty())
-		states.top()->Update(dt);
+	if (window->hasFocus()) {
+	}
+		if (!states.empty())
+			states.top()->Update(dt);
 }
 
 void State_Manager::Display()

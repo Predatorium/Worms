@@ -13,7 +13,7 @@ Menu::Menu(State_Manager* game, sf::RenderWindow* _window)
 
 	Bouton.push_back(Button(CreateText("New Game", font, 50),
 		CreateRectangle(1, { 200,50 }), { 500,500 },
-		[this] { Game->ChangeState<GameState>(Game, window); }));
+		[this] { Game->ChangeState<WaitingRoom>(Game, window); }));
 
 	Bouton.push_back(Button(CreateText("Quit", font, 50),
 		CreateRectangle(1, { 200,50 }), { 500,600 },
@@ -46,7 +46,7 @@ void Menu::Update(const float& dt)
 {
 	if (!Click) {
 		for (auto& it : Bouton) {
-			if (it.Update()) {
+			if (it.Update(window)) {
 				Click = true;
 				break;
 			}

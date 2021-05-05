@@ -13,7 +13,8 @@ enum Type
 	Disconnect,
 	AddOtherPlayer,
 	Add_Worms,
-	Delete_Worms
+	Delete_Worms,
+	EXPLO,
 };
 enum State { Waiting, Game };
 

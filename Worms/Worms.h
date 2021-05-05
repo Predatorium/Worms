@@ -17,6 +17,7 @@ public:
 
 	sf::RectangleShape& Get_Shape() { return Shape; }
 	int Get_Life() { return Life; }
+	void Set_Life(int life) { Life = life; }
 
 	void Move(float move) { Velocity.x = move; }
 	void Move(sf::Vector2f move) { Velocity = move; }
@@ -26,7 +27,7 @@ public:
 	void Set_Angle(float angle) { Angle = angle; }
 	void StopVeloX() { Velocity.x = 0; }
 	void Jump(float jump, sf::Image& image);
-	void Shoot(std::vector<Arme>& shoot, Arme::Type arme);
+	void Shoot(std::vector<Arme>& shoot, int id, Arme::Type arme);
 	void Damage(int damage) { Life += damage; }
 
 	void Update(const float& dt, sf::Image& image);

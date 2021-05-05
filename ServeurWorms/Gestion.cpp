@@ -42,6 +42,9 @@ void Gestion::Update(const float& dt)
 			for (int i = 0; i < client.size(); i++) {
 				if (!client[i]->Ready) {
 					DispoId.push_back(client[i]->Id);
+
+					std::cout << client[i]->username << " s'est deconnecte" << std::endl;
+
 					client.erase(client.begin() + i);
 					i--;
 				}
@@ -51,23 +54,30 @@ void Gestion::Update(const float& dt)
 			break;
 		}
 
-		//for (int i = 0; i < client.size(); i++) {
-		//	client[i]->timeout += dt;
+		for (int i = 0; i < client.size(); i++) {
+			client[i]->timeout += dt;
 
-		//	if (client[i]->timeout > 10.f) {
+			if (client[i]->timeout > 10.f) {
 
-		//		sf::Packet sendPacket;									// Déclaration d'un packet
-		//		sendPacket << state << Disconnect << client[i]->Id;
-		//		
-		//		DispoId.push_back(client[i]->Id);
-		//		client.erase(client.begin() + i);
-		//		i--;
+				sf::Packet sendPacket;									// Déclaration d'un packet
+				sendPacket << state << Disconnect << client[i]->Id;
+				
+				DispoId.push_back(client[i]->Id);
 
-		//		for (int j = 0; j < client.size(); j++) {
-		//			client[j]->socket->send(sendPacket);
-		//		}
-		//	}
-		//}
+				std::cout << client[i]->username << " TimedOut" << std::endl;
+
+				client.erase(client.begin() + i);
+				i--;
+
+				for (int j = 0; j < client.size(); j++) {
+					client[j]->socket->send(sendPacket);
+				}
+			}
+		}
+
+		if (client.size() < 1) {
+			state = Waiting;
+		}
 	}
 }
 
@@ -75,23 +85,23 @@ void Gestion::CheckNewPlayer()
 {
 	if (selector.isReady(listener) && client.size() < 4)
 	{
+		int id = DispoId.back();
+		DispoId.pop_back();
 		std::string pseudo;
 
-		if (client.size() == 0)
+		if (id == 0)
 			pseudo = Name1;
-		if (client.size() == 1)
+		if (id == 1)
 			pseudo = Name2;
-		if (client.size() == 2)
+		if (id == 2)
 			pseudo = Name3;
-		if (client.size() == 3)
+		if (id == 3)
 			pseudo = Name4;
 
 		Client* socket = new Client(pseudo);
 		socket->socket = new sf::TcpSocket();
 		listener.accept(*socket->socket);
 		selector.add(*socket->socket);
-		int id = DispoId.back();
-		DispoId.pop_back();
 
 		int type;
 
@@ -105,6 +115,7 @@ void Gestion::CheckNewPlayer()
 		}
 
 		client.push_back(socket);
+		client.back()->timeout = 0;
 
 		sf::Packet NsendPacket; // Déclaration d'un packet pour l'envoi
 		NsendPacket << state << ME << id; // Préparation d'un packet
@@ -150,12 +161,16 @@ void Gestion::WaitingFullReday()
 					receivePacket >> type;
 
 					if (type == Ready) {
-						client[i]->Ready = true;
-						std::cout << client[i]->username << "est pret." << std::endl;
+						if (client[i]->Ready != true) {
+							client[i]->Ready = true;
+							std::cout << client[i]->username << " est pret." << std::endl;
+						}
 					}
 					if (type == NoReady) {
-						client[i]->Ready = false;
-						std::cout << client[i]->username << "n est pas pret." << std::endl;
+						if (client[i]->Ready != false) {
+							client[i]->Ready = false;
+							std::cout << client[i]->username << " n est pas pret." << std::endl;
+						}
 					}
 
 					if (type == Disconnect) {
@@ -165,7 +180,7 @@ void Gestion::WaitingFullReday()
 
 						DispoId.push_back(client[i]->Id);
 
-						std::cout << client[i]->username << "c est deco." << std::endl;
+						std::cout << client[i]->username << " s est deco." << std::endl;
 
 						client.erase(client.begin() + i);
 						i--;

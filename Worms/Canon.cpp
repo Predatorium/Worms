@@ -1,6 +1,7 @@
 #include "Canon.h"
 
-Arme::Arme(sf::Vector2f pos, float angle, Type arme)
+Arme::Arme(sf::Vector2f pos, float angle, int id, Type arme)
+	:ID{ id }
 {
 	switch (arme)
 	{
