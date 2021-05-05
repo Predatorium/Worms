@@ -21,6 +21,7 @@ Arme::Arme(sf::Vector2f pos, float angle, Type arme)
 		break;
 	case Type::Uzi:
 		Shape.setSize(sf::Vector2f(20, 20));
+		Radius = 20;
 		Damage = 10;
 		break;
 	default:
@@ -41,12 +42,11 @@ void Arme::Collide(sf::Image& image)
 	pos.x -= (int)Shape.getGlobalBounds().width / 2 + 1;
 	pos.y -= (int)Shape.getGlobalBounds().height / 2 + 1;
 
-	for (int i = 0; i < (int)Shape.getGlobalBounds().width; i++) {
+	for (int i = 0; i < (int)Shape.getGlobalBounds().width; i++)
 		if (CheckCollid(sf::Vector2f(pos.x + i, pos.y - 1), image)) {
 			Life = false;
 			return;
 		}
-	}
 
 	for (int i = 0; i < (int)Shape.getGlobalBounds().width; i++)
 		if (CheckCollid(sf::Vector2f(pos.x + i, pos.y + (int)Shape.getGlobalBounds().height + 2), image)) {

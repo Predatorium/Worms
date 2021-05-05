@@ -5,6 +5,7 @@
 enum Type
 {
 	Update_Pos,
+	ME,
 	Ready,
 	NoReady,
 	New,

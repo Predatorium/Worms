@@ -51,23 +51,23 @@ void Gestion::Update(const float& dt)
 			break;
 		}
 
-		for (int i = 0; i < client.size(); i++) {
-			client[i]->timeout += dt;
+		//for (int i = 0; i < client.size(); i++) {
+		//	client[i]->timeout += dt;
 
-			if (client[i]->timeout > 10.f) {
+		//	if (client[i]->timeout > 10.f) {
 
-				sf::Packet sendPacket;									// Déclaration d'un packet
-				sendPacket << state << Disconnect << client[i]->Id;
-				
-				DispoId.push_back(client[i]->Id);
-				client.erase(client.begin() + i);
-				i--;
+		//		sf::Packet sendPacket;									// Déclaration d'un packet
+		//		sendPacket << state << Disconnect << client[i]->Id;
+		//		
+		//		DispoId.push_back(client[i]->Id);
+		//		client.erase(client.begin() + i);
+		//		i--;
 
-				for (int j = 0; j < client.size(); j++) {
-					client[j]->socket->send(sendPacket);
-				}
-			}
-		}
+		//		for (int j = 0; j < client.size(); j++) {
+		//			client[j]->socket->send(sendPacket);
+		//		}
+		//	}
+		//}
 	}
 }
 
@@ -105,6 +105,11 @@ void Gestion::CheckNewPlayer()
 		}
 
 		client.push_back(socket);
+
+		sf::Packet NsendPacket; // Déclaration d'un packet pour l'envoi
+		NsendPacket << state << ME << id; // Préparation d'un packet
+		client.back()->socket->send(NsendPacket);
+
 		std::string ip = client.back()->socket->getRemoteAddress().toString();
 
 		std::cout << "Recu du client " << socket->username << " ip: " << ip << std::endl;
@@ -146,27 +151,11 @@ void Gestion::WaitingFullReday()
 
 					if (type == Ready) {
 						client[i]->Ready = true;
-
-						sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
-						sendPacket << state << Ready << client[i]->Id; // Préparation d'un packet
-
-						// envoi de ce paquet à tous les clients sauf à celui qui à envoyé
-						for (int j = 0; j < client.size(); j++) {
-							if (i != j)
-								client[j]->socket->send(sendPacket);
-						}
+						std::cout << client[i]->username << "est pret." << std::endl;
 					}
 					if (type == NoReady) {
 						client[i]->Ready = false;
-
-						sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
-						sendPacket << state << NoReady << client[i]->Id; // Préparation d'un packet
-
-						// envoi de ce paquet à tous les clients sauf à celui qui à envoyé
-						for (int j = 0; j < client.size(); j++) {
-							if (i != j)
-								client[j]->socket->send(sendPacket);
-						}
+						std::cout << client[i]->username << "n est pas pret." << std::endl;
 					}
 
 					if (type == Disconnect) {
@@ -175,6 +164,9 @@ void Gestion::WaitingFullReday()
 						sendPacket << state << Disconnect << client[i]->Id;
 
 						DispoId.push_back(client[i]->Id);
+
+						std::cout << client[i]->username << "c est deco." << std::endl;
+
 						client.erase(client.begin() + i);
 						i--;
 
@@ -197,6 +189,8 @@ void Gestion::WaitingFullReday()
 				state = Game;
 				sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
 				sendPacket << state; // Préparation d'un packet
+
+				std::cout << "Tous le monde est pret" << std::endl;
 
 				for (int j = 0; j < client.size(); j++) {
 					client[j]->socket->send(sendPacket);

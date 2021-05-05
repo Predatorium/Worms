@@ -23,8 +23,14 @@ void Entity::Get_NextPos(const float& dt, sf::Image& image)
 		for (int i = 0; i < (int)Shape.getGlobalBounds().height; i++) {
 			for (float y = 0; y < -Velocity.x * dt + 0.1; y += 0.1) {
 				if (CheckCollid(sf::Vector2f(Next.x - y, Next.y + i), image)) {
-					Shape.setPosition(sf::Vector2f((Next.x - y) + Shape.getGlobalBounds().width / 2, Shape.getPosition().y));
-					Velocity.x = 0;
+					if (i >= (int)Shape.getGlobalBounds().height - 2) {
+						Velocity.y -= 2;
+					}
+					else {
+						Shape.setPosition(sf::Vector2f((Next.x - y) + Shape.getGlobalBounds().width / 2, Shape.getPosition().y));
+						Velocity.x = 0;
+					}
+
 					find = true;
 					break;
 				}
@@ -39,8 +45,13 @@ void Entity::Get_NextPos(const float& dt, sf::Image& image)
 		for (int i = 0; i < (int)Shape.getGlobalBounds().height; i++) {
 			for (float y = 0; y < Velocity.x * dt + 0.1; y += 0.1) {
 				if (CheckCollid(sf::Vector2f(Next.x + y, Next.y + i), image)) {
-					Shape.setPosition(sf::Vector2f((Next.x + y) - Shape.getGlobalBounds().width / 2, Shape.getPosition().y));
-					Velocity.x = 0;
+					if (i >= (int)Shape.getGlobalBounds().height - 2) {
+						Velocity.y -= 2;
+					}
+					else {
+						Shape.setPosition(sf::Vector2f((Next.x + y) - Shape.getGlobalBounds().width / 2, Shape.getPosition().y));
+						Velocity.x = 0;
+					}
 					find = true;
 					break;
 				}
@@ -78,6 +89,8 @@ void Entity::Get_NextPos(const float& dt, sf::Image& image)
 				if (CheckCollid(sf::Vector2f(Next.x + i, Next.y + y), image)) {
 					Shape.setPosition(sf::Vector2f(Shape.getPosition().x, (Next.y + y) - Shape.getGlobalBounds().height / 2));
 					Velocity.y = 0;
+					Sol = true;
+					Movable = true;
 					find = true;
 					break;
 				}
@@ -91,4 +104,5 @@ void Entity::Get_NextPos(const float& dt, sf::Image& image)
 void Entity::Move(sf::Vector2f move)
 {
 	Velocity = move;
+	Sol = false;
 }

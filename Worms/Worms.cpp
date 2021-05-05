@@ -1,9 +1,10 @@
 #include "Worms.h"
 #include <math.h>
+#include "Tools.h"
 
 Worms::Worms(sf::Vector2f _pos, sf::Color _team)
 {
-	Shape.setSize(sf::Vector2f(40, 80));
+	Shape.setSize(sf::Vector2f(20, 40));
 	Shape.setOrigin(Shape.getSize().x / 2, Shape.getSize().y / 2);
 	Shape.setPosition(_pos);
 	Shape.setFillColor(_team);
@@ -31,9 +32,10 @@ void Worms::Jump(float jump, sf::Image& image)
 	}
 }
 
-void Worms::Shoot(std::vector<Arme>& shoot)
+void Worms::Shoot(std::vector<Arme>& shoot, Arme::Type arme)
 {
-	shoot.push_back(Arme(Shape.getPosition() + sf::Vector2f(cos(Angle) * 100, sin(Angle) * 100), Angle));
+	shoot.push_back(Arme(Shape.getPosition(),
+		Angle, arme));
 }
 
 void Worms::Update(const float& dt, sf::Image& image)
@@ -48,22 +50,13 @@ void Worms::Update(const float& dt, sf::Image& image)
 	}
 }
 
-void Worms::Display(sf::RenderWindow* window)
+void Worms::Display(sf::RenderWindow* window, sf::Font& font)
 {
-	sf::RectangleShape Barre(sf::Vector2f(Shape.getGlobalBounds().width - 2, 20));
-	Barre.setOrigin((Shape.getGlobalBounds().width - 2) / 2, 20 / 2);
-	Barre.setPosition(Shape.getPosition().x, Shape.getPosition().y - 65);
-	Barre.setFillColor(sf::Color::Transparent);
-	Barre.setOutlineThickness(1);
-	Barre.setOutlineColor(sf::Color(150,150,150));
+	sf::Text tmp = CreateText(std::to_string(Life), font, 15);
+	tmp.setFillColor(sf::Color::Red);
+	tmp.setPosition(Shape.getPosition().x, Shape.getPosition().y - Shape.getGlobalBounds().height);
 
-	sf::RectangleShape LifeBarre(sf::Vector2f(Shape.getGlobalBounds().width - 2 * (100 / Life), 20));
-	LifeBarre.setPosition(Barre.getPosition().x - Barre.getGlobalBounds().width / 2,
-		Shape.getPosition().y - 65 - LifeBarre.getGlobalBounds().height / 2);
-	LifeBarre.setFillColor(sf::Color::Red);
-
-	window->draw(LifeBarre);
-	window->draw(Barre);
+	window->draw(tmp);
 	window->draw(Shape);
 }
 

@@ -1,8 +1,6 @@
 #pragma once
 #include <stack>
 #include "SFML/Graphics.hpp"
-#include <thread>
-#include <mutex>
 
 class State;
 
@@ -14,10 +12,10 @@ public:
 	~State_Manager();
 
 	template<typename T, class ...Args>
-	void ChangeState(Args ...args);
+	void ChangeState(Args&& ...args);
 
 	template<typename T, class ...Args>
-	void PushState(Args ...args);
+	void PushState(Args&& ...args);
 
 	void PopState();
 
@@ -31,19 +29,19 @@ private:
 };
 
 template<typename T, class ...Args>
-inline void State_Manager::ChangeState(Args ...args)
+inline void State_Manager::ChangeState(Args&& ...args)
 {
 	if (!states.empty())
 		states.pop();
 
-	states.push(new T(args...));
+	states.push(new T(std::forward<Args>(args)...));
 }
 
 template<typename T, class ...Args>
-inline void State_Manager::PushState(Args ...args)
+inline void State_Manager::PushState(Args&& ...args)
 {
 	if (!states.empty())
 		states.top()->Pause();
 
-	states.push(new T(args...));
+	states.push(new T(std::forward<Args>(args)...));
 }

@@ -2,7 +2,7 @@
 #include "Entity.h"
 #include "Canon.h"
 
-const float pi = 3.141592653589793238462643383279502884197169399375105820974944592307816406286;
+const float pi(4.f * atan2f(1.f, 1.f));
 
 class Worms : public Entity
 {
@@ -15,19 +15,22 @@ public:
 	Worms(sf::Vector2f _pos, sf::Color _team);
 	~Worms() = default;
 
-	bool Movable{ true };
-
+	sf::RectangleShape& Get_Shape() { return Shape; }
 	int Get_Life() { return Life; }
 
 	void Move(float move) { Velocity.x = move; }
+	void Move(sf::Vector2f move) { Velocity = move; }
+	void Set_Position(sf::Vector2f pos) { Shape.setPosition(pos); }
 	void Move_Angle(float move, const float& dt);
+	float Get_Angle() { return Angle; }
 	void Set_Angle(float angle) { Angle = angle; }
 	void StopVeloX() { Velocity.x = 0; }
 	void Jump(float jump, sf::Image& image);
-	void Shoot(std::vector<Arme>& shoot);
+	void Shoot(std::vector<Arme>& shoot, Arme::Type arme);
 	void Damage(int damage) { Life += damage; }
 
 	void Update(const float& dt, sf::Image& image);
-	void Display(sf::RenderWindow* window);
+	void Display(sf::RenderWindow* window, sf::Font& font);
+	void Display(sf::RenderWindow* window) { ; }
 	void DisplayDirAttack(sf::RenderWindow* window);
 };

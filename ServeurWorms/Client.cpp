@@ -18,22 +18,10 @@ void Client::CheckPacket(std::vector<Client*>& client)
 			receivePacket >> WormsId >> pos.x >> pos.y;
 
 			Worms.push_back(std::make_pair(pos, WormsId));
-
-			sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
-			sendPacket << state << Add_Worms << Id << WormsId << pos.x << pos.y; // Préparation d'un packet
-
-			for (int j = 0; j < client.size(); j++) {
-				if (client[j] != this) {
-					client[j]->socket->send(sendPacket);
-				}
-			}
 		}
 		if (type == Delete_Worms) {
 			int WormsId;
 			receivePacket >> WormsId;
-
-			sf::Packet sendPacket; // Déclaration d'un packet pour l'envoi
-			sendPacket << state << Add_Worms << Id << WormsId; // Préparation d'un packet
 
 			for (int i = 0; i < Worms.size(); i++) {
 				if (Worms[i].second == WormsId) {
@@ -42,9 +30,12 @@ void Client::CheckPacket(std::vector<Client*>& client)
 				}
 			}
 
+			sf::Packet packet;
+			packet << state << Delete_Worms << Id << WormsId;
+
 			for (int j = 0; j < client.size(); j++) {
 				if (client[j] != this) {
-					client[j]->socket->send(sendPacket);
+					client[j]->socket->send(packet);
 				}
 			}
 		}
@@ -72,6 +63,7 @@ void Client::CheckPacket(std::vector<Client*>& client)
 			for (int i = 0; i < Worms.size(); i++) {
 				if (WormsId == Worms[i].second) {
 					receivePacket >> Worms[i].first.x >> Worms[i].first.y;
+					break;
 				}
 			}
 
@@ -81,6 +73,7 @@ void Client::CheckPacket(std::vector<Client*>& client)
 			for (int i = 0; i < Worms.size(); i++) {
 				if (WormsId == Worms[i].second) {
 					sendPacket << Worms[i].first.x << Worms[i].first.y;
+					break;
 				}
 			}
 

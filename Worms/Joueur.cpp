@@ -1,6 +1,8 @@
 #include "Joueur.h"
+#include "Tools.h"
 
-Joueur::Joueur(std::vector<sf::Vector2f> pos, int id) : Id{ id }
+Joueur::Joueur(std::vector<sf::Vector2f> pos, int id,
+	std::shared_ptr<sf::TcpSocket> socket) : Id{ id }, Socket{socket}
 {
 	sf::Color tmp;
 	switch (id)
@@ -21,68 +23,113 @@ Joueur::Joueur(std::vector<sf::Vector2f> pos, int id) : Id{ id }
 		break;
 	}
 
-	for (auto it : pos) {
-		Team.push_back(Worms(it, tmp));
+	int i = 0;
+	for (auto& it : pos) {
+		Team.emplace(std::make_pair(i, Worms(it, tmp)));
+		i++;
+
+		sf::Packet packet;
+		packet << 1 << Add_Worms << i << it.x << it.y;
+		Socket->send(packet);
 	}
 }
 
 void Joueur::NextWorms()
 {
-	WormsTurn++;
-	if (WormsTurn > Team.size() - 1) {
-		WormsTurn = 0;
-	}
-}
+	bool done = true;
+	while (done) {
+		WormsTurn++;
 
-void Joueur::Controle(sf::Image& image, std::vector<Arme>& shoot, const float& dt)
-{
-	if (Team.size() > 0) {
-		if (Team[WormsTurn].Movable) {
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-				Team[WormsTurn].Move(100);
-				Team[WormsTurn].Set_Angle(0);
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-				Team[WormsTurn].Move(-100);
-				Team[WormsTurn].Set_Angle(pi);
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-				Team[WormsTurn].Jump(400, image);
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && Shoot) {
-				Team[WormsTurn].Shoot(shoot);
-				Shoot = false;
-			}
-			else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E))
-				Shoot = true;
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
-				Team[WormsTurn].Move_Angle(5, dt);
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-				Team[WormsTurn].Move_Angle(-5, dt);
+		if (WormsTurn > Team.size()) {
+			WormsTurn = 0;
+		}
+
+		for (auto& it : Team) {
+			if (WormsTurn == it.first) {
+				done = false;
 			}
 		}
 	}
 }
 
-void Joueur::Damage(int damage)
+void Joueur::Controle(sf::Image& image, std::vector<Arme>& shoot, const float& dt, float& timer)
 {
+	if (Team.size() > 0) {
+		if (Team[WormsTurn].Sol) {
+			Team[WormsTurn].Movable = true;
+			if (Team[WormsTurn].Movable) {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+					Team[WormsTurn].Move(100);
+					Team[WormsTurn].Set_Angle(0);
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+					Team[WormsTurn].Move(-100);
+					Team[WormsTurn].Set_Angle(pi);
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+					Team[WormsTurn].Jump(400, image);
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && Shoot) {
+					Team[WormsTurn].Shoot(shoot, Weapon);
+
+					int arme = static_cast<int>(Weapon);
+
+					sf::Packet packet;
+					packet << 1 << Attack << Team[WormsTurn].Get_Angle() << 20 <<
+						Team[WormsTurn].Get_Position().x << Team[WormsTurn].Get_Position().y
+						<< arme;
+					Socket->send(packet);
+
+					Shoot = false;
+				}
+				else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+					Shoot = true;
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
+					Team[WormsTurn].Move_Angle(5, dt);
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+					Team[WormsTurn].Move_Angle(-5, dt);
+				}
+			}
+		}
+	}
+}
+
+void Joueur::Damage(int damage, sf::Vector2f position, float radius)
+{
+	sf::CircleShape tmp(radius);
+	tmp.setOrigin(radius, radius);
+	tmp.setPosition(position);
 	for (auto& it : Team) {
-		it.Damage(damage);
+		if (BetweenGlobalBoundsAndCircle(it.second.Get_Shape(), position, tmp)) {
+			it.second.Damage(damage);
+			it.second.Move(normalize(it.second.Get_Position() - position) * 1000.f);
+		}
 	}
 }
 
 void Joueur::Update(const float& dt, sf::Image& image)
 {
 	for (auto& it : Team) {
-		it.Update(dt, image);
+		it.second.Update(dt, image);
 
-		if (it.Movable)
-			it.StopVeloX();
+		sf::Packet packet;
+		packet << 1 << Update_Pos << it.first << it.second.Get_Position().x << it.second.Get_Position().y;
+		Socket->send(packet);
+
+		if (it.second.Movable)
+			it.second.StopVeloX();
+
+		it.second.Movable = false;
 	}
 
 	for (auto it = std::begin(Team); it != std::end(Team);) {
-		if (it->Get_Life() <= 0) {
+		if (it->second.Get_Life() <= 0) {
+
+			sf::Packet packet;
+			packet << 1 << Delete_Worms << it->first;
+			Socket->send(packet);
+
 			it = Team.erase(it);
 		}
 		else {
@@ -91,11 +138,78 @@ void Joueur::Update(const float& dt, sf::Image& image)
 	}
 }
 
-void Joueur::Display(sf::RenderWindow* window)
+void Joueur::Display(sf::RenderWindow* window, sf::Font& font)
 {
 	for (auto& it : Team)
-		it.Display(window);
+		it.second.Display(window, font);
 
 	if (Team.size() > 0)
 		Team[WormsTurn].DisplayDirAttack(window);
+}
+
+OtherPlayer::OtherPlayer(std::vector<sf::Vector2f> pos, int id,
+	std::string name) : Name{ name }
+{
+	sf::Color tmp;
+	switch (id)
+	{
+	case 1:
+		tmp = sf::Color::Blue;
+		break;
+	case 2:
+		tmp = sf::Color::Red;
+		break;
+	case 3:
+		tmp = sf::Color::Green;
+		break;
+	case 4:
+		tmp = sf::Color::Magenta;
+		break;
+	default:
+		break;
+	}
+
+	int i = 0;
+	for (auto& it : pos) {
+		Team.emplace(std::make_pair(i, Worms(it, tmp)));
+		i++;
+	}
+}
+
+void OtherPlayer::Damage(int damage, sf::Vector2f position, float radius)
+{
+	sf::CircleShape tmp(radius);
+	tmp.setOrigin(radius, radius);
+	tmp.setPosition(position);
+	for (auto& it : Team) {
+		if (BetweenGlobalBoundsAndCircle(it.second.Get_Shape(), position, tmp)) {
+			it.second.Damage(damage);
+			it.second.Move(normalize(it.second.Get_Position() - position) * 1000.f);
+		}
+	}
+
+	for (auto it = std::begin(Team); it != std::end(Team);) {
+		if (it->second.Get_Life() <= 0) {
+			it = Team.erase(it);
+		}
+		else {
+			it++;
+		}
+	}
+}
+
+void OtherPlayer::SetPos(sf::Vector2f pos, int id)
+{
+	Team.find(id)->second.Set_Position(pos);
+}
+
+void OtherPlayer::Delete(int id)
+{
+	Team.erase(Team.find(id));
+}
+
+void OtherPlayer::Display(sf::RenderWindow* window, sf::Font& font)
+{
+	for (auto& it : Team)
+		it.second.Display(window, font);
 }

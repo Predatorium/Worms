@@ -1,6 +1,6 @@
 #include "Loop.h"
 #include <iostream>
-#include "GameState.h"
+#include "Menu.h"
 
 Loop::Loop(sf::VideoMode _videomode, std::string _name, sf::Uint32 _style)
 	: window(_videomode, _name, _style), state_manager(&window), Time()
@@ -10,7 +10,7 @@ Loop::Loop(sf::VideoMode _videomode, std::string _name, sf::Uint32 _style)
 
 void Loop::GameLoop()
 {
-	state_manager.PushState<GameState>(&state_manager, &window);
+	state_manager.PushState<Menu>(&state_manager, &window);
 
 	while (window.isOpen()) {
 		try {
