@@ -35,8 +35,12 @@ void Gestion::Update(const float& dt)
 			break;
 		case Game:
 
-			for (int i = 0; i < client.size(); i++) {
-				client[i]->CheckPacket(client);
+			if (!selector.isReady(listener)) {
+				for (int i = 0; i < client.size(); i++) {
+					if (selector.isReady(*client[i]->socket)) {
+						client[i]->CheckPacket(client);
+					}
+				}
 			}
 
 			for (int i = 0; i < client.size(); i++) {
