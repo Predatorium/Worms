@@ -43,6 +43,7 @@ private:
 	int Turn{ 0 };
 	float Timer{ 90.f };
 	float Nextturn{ 5.f };
+	float TimeOut{ 0 };
 	int Vent{ 0 };
 
 	void FindNextPlayer();

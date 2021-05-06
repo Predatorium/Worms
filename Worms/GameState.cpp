@@ -1,6 +1,6 @@
 #include "GameState.h"
 #include "State_Manager.h"
-#include "Menu.h"
+#include "WaitingRoom.h"
 #include "Tools.h"
 
 GameState::GameState(State_Manager* game, sf::RenderWindow* _window,
@@ -45,7 +45,7 @@ GameState::GameState(State_Manager* game, sf::RenderWindow* _window,
 	}
 
 	sf::Packet packet;
-	packet << 1 << ChangeTurn;
+	packet << 1 << ChangeTurn << Timer << Nextturn;
 	Socket->send(packet);
 }
 
@@ -65,23 +65,22 @@ void GameState::HandleEvents(sf::Event e)
 		sendPacket << 1 << Disconnect;			// Préparation d'un packet
 		Socket->send(sendPacket);				// Envoi de ce paquet au serveur
 
-		Game->ChangeState<Menu>(Game, window);
+		Game->ChangeState<WaitingRoom>(Game, window);
 	}
 
 }
 
 void GameState::FindNextPlayer()
 {
-	if (Timer < 0) {
+	if (Timer < 0.f) {
+		Timer = 90;
+		Nextturn = 5.f;
 
 		if (Turn == Me) {
 			sf::Packet packet;
-			packet << 1 << ChangeTurn;
+			packet << 1 << ChangeTurn << Timer << Nextturn;
 			Socket->send(packet);
 		}
-
-		Timer = 90;
-		Nextturn = 5.f;
 	}
 }
 
@@ -90,6 +89,8 @@ void GameState::ReceptionServeur()
 	sf::Packet receivePacket;
 
 	if (Socket->receive(receivePacket) == sf::Socket::Done) {
+		TimeOut = 0;
+
 		int etats;
 		int type;
 
@@ -135,7 +136,7 @@ void GameState::ReceptionServeur()
 			}
 		}
 		if (type == ChangeTurn) {
-			receivePacket >> Turn >> Vent;
+			receivePacket >> Turn >> Vent >> Timer >> Nextturn;
 
 			if (Turn == Me) {
 				Player.NextWorms();
@@ -156,6 +157,11 @@ void GameState::ReceptionServeur()
 			int Id;
 			receivePacket >> Id;
 
+			if (Id == Me) {
+				Game->ChangeState<WaitingRoom>(Game, window);
+				return;
+			}
+
 			for (auto it = std::begin(Enemy); it != std::end(Enemy);) {
 				if (it->Get_Id() == Id) {
 					it = Enemy.erase(it);
@@ -165,13 +171,23 @@ void GameState::ReceptionServeur()
 					it++;
 				}
 			}
+
+			if (Enemy.size() == 0) {
+				sf::Packet sendPacket;					// Déclaration d'un packet
+				sendPacket << 1 << Disconnect;			// Préparation d'un packet
+				Socket->send(sendPacket);				// Envoi de ce paquet au serveur
+
+				Game->ChangeState<WaitingRoom>(Game, window);
+			}
 		}
 	}
 }
 
 void GameState::Update(const float& dt)
 {
-	if (Nextturn > 0.f) {
+	TimeOut += dt;
+
+	if (Nextturn < 0.f) {
 		Timer -= dt;
 
 		if (Me == Turn) {
@@ -182,18 +198,21 @@ void GameState::Update(const float& dt)
 			Timer = 0;
 		}
 
+		ReceptionServeur();
+
 		FindNextPlayer();
 	}
 	else {
 		Nextturn -= dt;
+
+		ReceptionServeur();
 	}
 	
 	Player.Update(dt, Carte.Get_Collid());
 
-	ReceptionServeur();
-
 	for (auto& it : arme) {
 		it.Update(dt, Vent, Carte.Get_Collid());
+		it.CollidWorms(Player, Enemy);
 	}
 
 	for (auto& it : Explo) {
@@ -228,6 +247,10 @@ void GameState::Update(const float& dt)
 			it++;
 		}
 	}
+
+	if (TimeOut > 15.f) {
+		Game->ChangeState<WaitingRoom>(Game, window);
+	}
 }
 
 void GameState::Display()
@@ -252,8 +275,34 @@ void GameState::Display()
 		it.Display(window);
 	}
 
-	sf::Text tmp = CreateText(std::to_string(static_cast<int>(Timer)), font, 50);
-	tmp.setPosition(960, 100);
-	tmp.setFillColor(sf::Color::Black);
-	window->draw(tmp);
+	if (Nextturn < 0) {
+		sf::Text tmp = CreateText(std::to_string(static_cast<int>(Timer)), font, 50);
+		tmp.setPosition(960, 100);
+		tmp.setFillColor(sf::Color(150,0,150));
+		window->draw(tmp);
+	}
+	else {
+		sf::Text tmp = CreateText(std::to_string(static_cast<int>(Nextturn)), font, 50);
+		tmp.setPosition(960, 100);
+		tmp.setFillColor(sf::Color(150, 0, 150));
+		window->draw(tmp);
+
+		sf::Text tmp2;
+		
+		if (Turn == Me) {
+			tmp2	= CreateText("C est ton tour", font, 100);
+		}
+		else {
+			for (auto& it : Enemy) {
+				if (it.Get_Id() == Turn) {
+					tmp2 = CreateText("C est au tour de " + it.Get_Name(), font, 100);
+					break;
+				}
+			}
+		}
+
+		tmp2.setPosition(960, 300);
+		tmp2.setFillColor(sf::Color(150, 0, 150));
+		window->draw(tmp2);
+	}
 }

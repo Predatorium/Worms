@@ -52,6 +52,19 @@ void Gestion::Update(const float& dt)
 					client.erase(client.begin() + i);
 					i--;
 				}
+
+				if (client[i]->Worms.size() == 0) {
+					sf::Packet sendPacket;									// Déclaration d'un packet
+					sendPacket << state << Disconnect << client[i]->Id;
+
+					for (int j = 0; j < client.size(); j++) {
+						client[j]->socket->send(sendPacket);
+					}
+
+					client.erase(client.begin() + i);
+					i--;
+
+				}
 			}
 			break;
 		default:

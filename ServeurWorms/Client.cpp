@@ -111,6 +111,11 @@ void Client::CheckPacket(std::vector<Client*>& client)
 		}
 		if (type == ChangeTurn) {
 			
+			float timerturn;
+			float timer;
+
+			receivePacket >> timerturn >> timer;
+
 			int next = Id;
 			int Vent = (rand() % 21) - 10;
 
@@ -130,7 +135,7 @@ void Client::CheckPacket(std::vector<Client*>& client)
 			}
 
 			sf::Packet sendPacket;									// Déclaration d'un packet
-			sendPacket << state << ChangeTurn << next << Vent;
+			sendPacket << state << ChangeTurn << next << Vent << timerturn << timer;
 
 			for (int j = 0; j < client.size(); j++) {
 				client[j]->socket->send(sendPacket);

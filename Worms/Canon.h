@@ -1,6 +1,9 @@
 #pragma once
 #include "Entity.h"
 
+class Joueur;
+class OtherPlayer;
+
 class Arme : public Entity
 {
 public:
@@ -19,6 +22,7 @@ private:
 	int Damage{ 0 };
 	int ID{ 0 };
 	float timer{ 0 };
+	sf::Vector2f Start;
 	Type type;
 
 	void Get_NextPos(const float& dt, sf::Image& image);
@@ -35,6 +39,7 @@ public:
 	sf::Vector2f Get_Position() { return Shape.getPosition(); }
 	int Get_ID() { return ID; }
 
+	void CollidWorms(Joueur& joueur, std::vector<OtherPlayer>& player);
 	void Update(const float& dt, int vent, sf::Image& image);
 	void Display(sf::RenderWindow* window, sf::Font& font);
 };

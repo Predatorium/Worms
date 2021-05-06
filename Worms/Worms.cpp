@@ -95,7 +95,6 @@ void Worms::Get_NextPos(const float& dt, sf::Image& image)
 	}
 	else if (Velocity.y > 0) {
 		Next.y += Shape.getGlobalBounds().height / 2;
-		Sol = false;
 		for (int i = 1; i < (int)Shape.getGlobalBounds().width; i++) {
 			for (float y = 0; y < (double)Velocity.y * dt + 0.1; y += (double)0.1f) {
 				if (CheckCollid(sf::Vector2f(Next.x + i, Next.y + y), image)) {
@@ -103,12 +102,10 @@ void Worms::Get_NextPos(const float& dt, sf::Image& image)
 					Velocity.y = 0;
 
 					if ((int)DamageFall - 10 > 0) {
-						Received -= (int)DamageFall - 10;
-						Life -= (int)DamageFall - 10;
+						Damage(-((int)DamageFall - 10));
 					}
 
 					DamageFall = 0;
-					Sol = true;
 					find = true;
 					break;
 				}
@@ -141,7 +138,7 @@ void Worms::Shoot(std::vector<Arme>& shoot, int id, Arme::Type arme, float power
 
 void Worms::Damage(int damage)
 {
-	Received += -damage;
+	Received += damage;
 	Life += damage;
 }
 
@@ -167,13 +164,22 @@ void Worms::Update(const float& dt, sf::Image& image)
 	}
 
 	if (!Sol) {
-		DamageFall += 10 * dt;
+		DamageFall += 20 * dt;
 	}
 
 	Velocity.y += 1000 * dt;
 	Get_NextPos(dt, image);
 
 	Shape.move(Velocity * dt);
+
+	sf::Vector2f Next = Shape.getPosition();
+	Next.x -= Shape.getGlobalBounds().width / 2;
+	Next.y += Shape.getGlobalBounds().height / 2 + 1;
+	for (int i = 2; i < (int)Shape.getGlobalBounds().width - 2; i++)
+		if (CheckCollid(sf::Vector2f(Next.x + i, Next.y), image)) {
+			Sol = true;
+			break;
+		}
 
 	if (Shape.getPosition().x < 0 || Shape.getPosition().x > 1920 || Shape.getPosition().y > 1080) {
 		Life = 0;
@@ -190,12 +196,10 @@ void Worms::Display(sf::RenderWindow* window, sf::Font& font)
 
 		sf::Text tmp2 = CreateText(DamageText, font, 15);
 		tmp2.setFillColor(sf::Color::Red);
-		tmp2.setPosition(tmp.getPosition().x, tmp.getPosition().y - tmp.getGlobalBounds().height);
+		tmp2.setPosition(tmp.getPosition().x, tmp.getPosition().y - tmp.getGlobalBounds().height * 2);
 
 		window->draw(tmp2);
 	}
-
-
 
 	window->draw(tmp);
 	window->draw(Shape);

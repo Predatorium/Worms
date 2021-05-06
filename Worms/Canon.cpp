@@ -1,8 +1,9 @@
 #include "Canon.h"
 #include "Tools.h"
+#include "Joueur.h"
 
 Arme::Arme(sf::Vector2f pos, float angle, int id, float power, Type arme)
-	:ID{ id }
+	:ID{ id }, Start{ pos }
 {
 	switch (arme)
 	{
@@ -157,6 +158,27 @@ void Arme::Collide(sf::Image& image)
 			Life = false;
 			return;
 		}
+}
+
+void Arme::CollidWorms(Joueur& joueur, std::vector<OtherPlayer>& player)
+{
+	for (auto& it : joueur.Get_Team()) {
+		if (BetweenGlobalBoundsAndCircle(it.second.Get_Shape(), Shape.getPosition(), Shape) &&
+			!Circle_Collision(it.second.Get_Position(), Start, it.second.Get_Shape().getGlobalBounds().height / 2)) {
+			Life = false;
+			return;
+		}
+	}
+
+	for (auto& itp : player) {
+		for (auto& it : itp.Get_Team()) {
+			if (BetweenGlobalBoundsAndCircle(it.second.Get_Shape(), Shape.getPosition(), Shape) &&
+				!Circle_Collision(it.second.Get_Position(), Start, it.second.Get_Shape().getGlobalBounds().height / 2)) {
+				Life = false;
+				return;
+			}
+		}
+	}
 }
 
 void Arme::Update(const float& dt, int vent, sf::Image& image)

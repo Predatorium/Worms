@@ -71,76 +71,74 @@ void Joueur::NextWorms()
 void Joueur::Controle(sf::Image& image, std::vector<Arme>& shoot, const float& dt, float& timer, sf::RenderWindow* window)
 {
 	if (Team.size() > 0) {
-		if (Team[WormsTurn].Sol) {
-			Team[WormsTurn].Movable = true;
-			if (Team[WormsTurn].Movable) {
+		Team[WormsTurn].Movable = true;
+		if (Team[WormsTurn].Movable) {
 
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-					Team[WormsTurn].Move(100);
-					Team[WormsTurn].Set_Angle(0);
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+				Team[WormsTurn].Move(100);
+				Team[WormsTurn].Set_Angle(0);
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+				Team[WormsTurn].Move(-100);
+				Team[WormsTurn].Set_Angle(pi);
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+				Team[WormsTurn].Jump(400, image);
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && Shoot && ReShoot) {
+				if (Weapon == Arme::Type::Dynamite) {
+					Team[WormsTurn].Shoot(shoot, Id, Weapon, 0);
+					int arme = static_cast<int>(Weapon);
+
+					sf::Packet packet;
+					packet << 1 << Attack << 0 << 0 << Team[WormsTurn].Get_Position().x <<
+						Team[WormsTurn].Get_Position().y << arme;
+					Socket->send(packet);
+
+					ReShoot = false;
+
+					if (timer > 10)
+						timer = 10;
 				}
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-					Team[WormsTurn].Move(-100);
-					Team[WormsTurn].Set_Angle(pi);
-				}
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-					Team[WormsTurn].Jump(400, image);
-				}
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) && Shoot && ReShoot) {
-					if (Weapon == Arme::Type::Dynamite) {
-						Team[WormsTurn].Shoot(shoot, Id, Weapon, 0);
+				else {
+					Shoot = false;
+					ReShoot = false;
+
+					if (Weapon != Arme::Type::Uzi) {
+						Charge = false;
+					}
+					else {
+						Team[WormsTurn].Shoot(shoot, Id, Weapon, 10000);
 						int arme = static_cast<int>(Weapon);
 
 						sf::Packet packet;
-						packet << 1 << Attack << 0 << 0 << Team[WormsTurn].Get_Position().x <<
-							Team[WormsTurn].Get_Position().y << arme;
+						packet << 1 << Attack << Team[WormsTurn].Get_Angle() << 10000 <<
+							Team[WormsTurn].Get_Position().x << Team[WormsTurn].Get_Position().y
+							<< arme;
 						Socket->send(packet);
 
-						ReShoot = false;
-
-						if (timer > 10)
-							timer = 10;
-					}
-					else {
-						Shoot = false;
-						ReShoot = false;
-
-						if (Weapon != Arme::Type::Uzi) {
-							Charge = false;
-						}
-						else {
-							Team[WormsTurn].Shoot(shoot, Id, Weapon, 10000);
-							int arme = static_cast<int>(Weapon);
-
-							sf::Packet packet;
-							packet << 1 << Attack << Team[WormsTurn].Get_Angle() << 10000 <<
-								Team[WormsTurn].Get_Position().x << Team[WormsTurn].Get_Position().y
-								<< arme;
-							Socket->send(packet);
-
-							iteration++;
-						}
+						iteration++;
 					}
 				}
-				else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
+			}
+			else if (!sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
 					Charge = true;
 				}
-					
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
+				
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
 					Team[WormsTurn].Move_Angle(3, dt);
 				}
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
 					Team[WormsTurn].Move_Angle(-3, dt);
 				}
 
-				if (!Charge) {
-					if (Power < 1000)
-						Power += dt * 500;
+			if (!Charge) {
+					if (Power < 2000)
+						Power += dt * 1000;
 					else
 						Charge = true;
 				}
-
-				if (!Shoot && Charge) {
+			if (!Shoot && Charge) {
 
 					if (Weapon != Arme::Type::Uzi) {
 						Team[WormsTurn].Shoot(shoot, Id, Weapon, Power);
@@ -184,20 +182,19 @@ void Joueur::Controle(sf::Image& image, std::vector<Arme>& shoot, const float& d
 						}
 					}
 				}
-			}
 		}
 
-		int i = 0;
-		for (auto& it : SelectWeapon) {
-			if (it.Update(window)) {
-				Weapon = static_cast<Arme::Type>(i);
-			}
+		if (ReShoot) {
+			int i = 0;
+			for (auto& it : SelectWeapon) {
+				if (it.Update(window)) {
+					Weapon = static_cast<Arme::Type>(i);
+				}
 
-			i++;
+				i++;
+			}
 		}
 	}
-
-
 }
 
 void Joueur::Damage(int damage, sf::CircleShape shape)
@@ -205,7 +202,8 @@ void Joueur::Damage(int damage, sf::CircleShape shape)
 	for (auto& it : Team) {
 		if (BetweenGlobalBoundsAndCircle(it.second.Get_Shape(), shape.getPosition(), shape)) {
 			it.second.Damage(damage);
-			it.second.Move(normalize(it.second.Get_Position() - shape.getPosition()) * 500.f);
+			it.second.Move(normalize(it.second.Get_Position() - shape.getPosition()) * (shape.getRadius() * 10.f));
+			it.second.Sol = false;
 		}
 	}
 }
@@ -241,7 +239,7 @@ void Joueur::Update(const float& dt, sf::Image& image)
 			Socket->send(packet);
 		}
 
-		if (it.second.Movable && it.second.Sol)
+		if (it.second.Movable || it.second.Sol)
 			it.second.StopVeloX();
 
 		it.second.Movable = false;
@@ -258,27 +256,29 @@ void Joueur::Display(sf::RenderWindow* window, sf::Font& font)
 		it.second.Display(window, font);
 	}
 
-	sf::Text tmp;
-	
-	switch (Weapon)
-	{
-	case Arme::Type::Canon:
-		tmp = CreateText("Bazooka", font);
-		break;
-	case Arme::Type::Grenade:
-		tmp = CreateText("Grenade", font);
-		break;
-	case Arme::Type::Dynamite:
-		tmp = CreateText("Dynamite", font);
-		break;
-	case Arme::Type::Uzi:
-		tmp = CreateText("Uzi", font);
-		break;
+	if (ReShoot) {
+		sf::Text tmp;
+
+		switch (Weapon)
+		{
+		case Arme::Type::Canon:
+			tmp = CreateText("Bazooka", font);
+			break;
+		case Arme::Type::Grenade:
+			tmp = CreateText("Grenade", font);
+			break;
+		case Arme::Type::Dynamite:
+			tmp = CreateText("Dynamite", font);
+			break;
+		case Arme::Type::Uzi:
+			tmp = CreateText("Uzi", font);
+			break;
+		}
+
+		tmp.setFillColor(sf::Color(150, 0, 150));
+		tmp.setPosition(200, 50);
+		window->draw(tmp);
 	}
-	
-	tmp.setFillColor(sf::Color::Black);
-	tmp.setPosition(200, 50);
-	window->draw(tmp);
 }
 
 void Joueur::DisplayTirAngle(sf::RenderWindow* window)
@@ -289,8 +289,8 @@ void Joueur::DisplayTirAngle(sf::RenderWindow* window)
 
 			window->draw(line(sf::Color::Red, sf::Color::Red, 1,
 				Team[WormsTurn].Get_Position(), Team[WormsTurn].Get_Position() +
-				sf::Vector2f(cos(Team[WormsTurn].Get_Angle()) * (Power / 10),
-					sin(Team[WormsTurn].Get_Angle()) * (Power / 10))));
+				sf::Vector2f(cos(Team[WormsTurn].Get_Angle()) * (Power / 20),
+					sin(Team[WormsTurn].Get_Angle()) * (Power / 20))));
 		}
 
 		for (auto& it : SelectWeapon) {
@@ -330,17 +330,20 @@ OtherPlayer::OtherPlayer(std::vector<sf::Vector2f> pos, int id,
 
 void OtherPlayer::SetPos(sf::Vector2f pos, int id)
 {
-	Team.find(id)->second.Set_Position(pos);
+	if (Team.find(id) != Team.end())
+		Team.find(id)->second.Set_Position(pos);
 }
 
 void OtherPlayer::SetLife(int life, int id)
 {
-	Team.find(id)->second.Set_Life(life);
+	if (Team.find(id) != Team.end())
+		Team.find(id)->second.Set_Life(life);
 }
 
 void OtherPlayer::Delete(int id)
 {
-	Team.erase(Team.find(id));
+	if (Team.find(id) != Team.end())
+		Team.erase(Team.find(id));
 }
 
 void OtherPlayer::Display(sf::RenderWindow* window, sf::Font& font)

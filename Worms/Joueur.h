@@ -49,6 +49,7 @@ public:
 
 	void NextWorms();
 	int Get_Id() { return Id; }
+	std::map<int, Worms> Get_Team() { return Team; }
 
 	void Controle(sf::Image& image, std::vector<Arme>& shoot,
 		const float& dt, float& timer, sf::RenderWindow* window);
@@ -69,6 +70,8 @@ public:
 	~OtherPlayer() = default;
 
 	int Get_Id() { return Id; }
+	std::string Get_Name() { return Name; }
+	std::map<int, Worms> Get_Team() { return Team; }
 
 	void SetPos(sf::Vector2f pos, int id);
 	void SetLife(int life, int id);
