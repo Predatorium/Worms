@@ -24,6 +24,7 @@ private:
 		Add_Worms,
 		Delete_Worms,
 		EXPLO,
+		ChangeTurn,
 	};
 
 	std::shared_ptr<sf::TcpSocket> Socket;
@@ -38,11 +39,11 @@ private:
 	std::vector<Arme> arme;
 	std::vector<Explosion> Explo;
 
-	bool Switch{ true };
 	int Me{ 0 };
 	int Turn{ 0 };
 	float Timer{ 90.f };
 	float Nextturn{ 5.f };
+	int Vent{ 0 };
 
 	void FindNextPlayer();
 	void ReceptionServeur();

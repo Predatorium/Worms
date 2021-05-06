@@ -61,14 +61,14 @@ void Gestion::Update(const float& dt)
 		for (int i = 0; i < client.size(); i++) {
 			client[i]->timeout += dt;
 
-			if (client[i]->timeout > 10.f) {
+			if (client[i]->timeout > 15.f) {
 
 				sf::Packet sendPacket;									// Déclaration d'un packet
 				sendPacket << state << Disconnect << client[i]->Id;
 				
 				DispoId.push_back(client[i]->Id);
 
-				std::cout << client[i]->username << " TimedOut" << std::endl;
+				std::cout << client[i]->username << " TimedOut"  << std::endl;
 
 				client.erase(client.begin() + i);
 				i--;

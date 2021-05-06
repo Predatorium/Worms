@@ -1,6 +1,7 @@
 #include "GameState.h"
 #include "State_Manager.h"
 #include "Menu.h"
+#include "Tools.h"
 
 GameState::GameState(State_Manager* game, sf::RenderWindow* _window,
 	std::map<int, std::string> _player, int id, std::shared_ptr<sf::TcpSocket> socket)
@@ -22,13 +23,13 @@ GameState::GameState(State_Manager* game, sf::RenderWindow* _window,
 		PosTeam[1].push_back(sf::Vector2f(1600, 100));
 		PosTeam[1].push_back(sf::Vector2f(100, 100));
 		PosTeam[1].push_back(sf::Vector2f(1300, 100));
-		PosTeam[1].push_back(sf::Vector2f(600, 100));
+		PosTeam[1].push_back(sf::Vector2f(300, 100));
 	}
 	if (_player.size() + 1 > 2) {
-		PosTeam[2].push_back(sf::Vector2f(1800, 100));
-		PosTeam[2].push_back(sf::Vector2f(500, 100));
-		PosTeam[2].push_back(sf::Vector2f(1800, 100));
-		PosTeam[2].push_back(sf::Vector2f(500, 100));
+		PosTeam[2].push_back(sf::Vector2f(200, 100));
+		PosTeam[2].push_back(sf::Vector2f(600, 100));
+		PosTeam[2].push_back(sf::Vector2f(1500, 100));
+		PosTeam[2].push_back(sf::Vector2f(900, 100));
 	}
 	if (_player.size() + 1 > 3) {
 		PosTeam[3].push_back(sf::Vector2f(1800, 100));
@@ -37,11 +38,15 @@ GameState::GameState(State_Manager* game, sf::RenderWindow* _window,
 		PosTeam[3].push_back(sf::Vector2f(500, 100));
 	}
 
-	Player = Joueur(PosTeam[Me - 1], Me, Socket);
+	Player = Joueur(PosTeam[(long)Me - 1], Me, Socket, font);
 
 	for (auto& it : _player) {
-		Enemy.push_back(OtherPlayer(PosTeam[it.first - 1], it.first, it.second));
+		Enemy.push_back(OtherPlayer(PosTeam[(long)it.first - 1], it.first, it.second));
 	}
+
+	sf::Packet packet;
+	packet << 1 << ChangeTurn;
+	Socket->send(packet);
 }
 
 void GameState::HandleEvents(sf::Event e)
@@ -51,21 +56,14 @@ void GameState::HandleEvents(sf::Event e)
 	case sf::Event::Closed:
 		window->close();
 		break;
-	case sf::Event::KeyPressed:
-		switch (e.key.code)
-		{
-		default:
-			break;
-		}
-		break;
 	default:
 		break;
 	}
 
 	if (!window->isOpen() || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-		sf::Packet sendPacket;				// Déclaration d'un packet
-		sendPacket << Disconnect;			// Préparation d'un packet
-		Socket->send(sendPacket);			// Envoi de ce paquet au serveur
+		sf::Packet sendPacket;					// Déclaration d'un packet
+		sendPacket << 1 << Disconnect;			// Préparation d'un packet
+		Socket->send(sendPacket);				// Envoi de ce paquet au serveur
 
 		Game->ChangeState<Menu>(Game, window);
 	}
@@ -75,25 +73,11 @@ void GameState::HandleEvents(sf::Event e)
 void GameState::FindNextPlayer()
 {
 	if (Timer < 0) {
-		if (Turn == Me)
-			Player.NextWorms();
 
-		bool done = true;
-		while (done) {
-			Turn++;
-			
-			if (Turn > Enemy.size()) {
-				Turn = 0;
-			}
-
-			if (Turn == Me)
-				done = false;
-
-			for (auto& it : Enemy) {
-				if (Turn == it.Get_Id()) {
-					done = false;
-				}
-			}
+		if (Turn == Me) {
+			sf::Packet packet;
+			packet << 1 << ChangeTurn;
+			Socket->send(packet);
 		}
 
 		Timer = 90;
@@ -114,13 +98,13 @@ void GameState::ReceptionServeur()
 		if (type == EXPLO) {
 			sf::Vector2f Pos;
 			float radius;
-			float damage;
+			int damage;
 			int id;
 
 			receivePacket >> id >> Pos.x >> Pos.y >> radius >> damage;
 
 			Explo.push_back(Explosion(Pos, radius, damage));
-			Explo.back().Affect_Damage(Enemy, Player);
+			Explo.back().Affect_Damage(Player);
 			Carte.DestroyMap(Explo.back().Get_Radius(), Explo.back().Get_Position());
 		}
 		if (type == Attack) {
@@ -132,7 +116,8 @@ void GameState::ReceptionServeur()
 
 			receivePacket >> id >> Angle >> Power >> Pos.x >> Pos.y >> AttackType;
 
-			arme.push_back(Arme(Pos, Angle, id, static_cast<Arme::Type>(AttackType)));
+			arme.push_back(Arme(Pos, Angle, id, Power, static_cast<Arme::Type>(AttackType)));
+			Timer = 10;
 		}
 		if (type == Update_Pos) {
 			int IdPlayer;
@@ -147,6 +132,13 @@ void GameState::ReceptionServeur()
 					it.SetPos(pos, Worms);
 					it.SetLife(life, Worms);
 				}
+			}
+		}
+		if (type == ChangeTurn) {
+			receivePacket >> Turn >> Vent;
+
+			if (Turn == Me) {
+				Player.NextWorms();
 			}
 		}
 		if (type == Delete_Worms) {
@@ -183,21 +175,25 @@ void GameState::Update(const float& dt)
 		Timer -= dt;
 
 		if (Me == Turn) {
-		
+			Player.Controle(Carte.Get_Collid(), arme, dt, Timer, window);
 		}
-		Player.Controle(Carte.Get_Collid(), arme, dt, Timer);
 
+		if (Player.EraseWorms()) {
+			Timer = 0;
+		}
+
+		FindNextPlayer();
 	}
 	else {
 		Nextturn -= dt;
-	}	
+	}
 	
 	Player.Update(dt, Carte.Get_Collid());
 
 	ReceptionServeur();
 
 	for (auto& it : arme) {
-		it.Update(dt, Carte.Get_Collid());
+		it.Update(dt, Vent, Carte.Get_Collid());
 	}
 
 	for (auto& it : Explo) {
@@ -205,15 +201,16 @@ void GameState::Update(const float& dt)
 	}
 
 	for (auto it = std::begin(arme); it != std::end(arme);) {
-		if (!it->Get_Life()) {
+		if (!it->Get_Life() && it->Get_Timer() <= 0) {
 			if (it->Get_ID() == Me) {
 				Explo.push_back(Explosion(it->Get_Position(), it->Get_Radius(), it->Get_Damage()));
-				Explo.back().Affect_Damage(Enemy, Player);
+				Explo.back().Affect_Damage(Player);
 				Carte.DestroyMap(Explo.back().Get_Radius(), Explo.back().Get_Position());
 
 				sf::Packet packet;
 				packet << 1 << EXPLO << Explo.back().Get_Position().x << Explo.back().Get_Position().y
 					<< Explo.back().Get_Radius() << it->Get_Damage();
+
 				Socket->send(packet);
 			}
 			it = arme.erase(it);
@@ -243,11 +240,20 @@ void GameState::Display()
 
 	Player.Display(window, font);
 
+	if (Turn == Me) {
+		Player.DisplayTirAngle(window);
+	}
+
 	for (auto& it : arme) {
-		it.Display(window);
+		it.Display(window, font);
 	}
 
 	for (auto& it : Explo) {
 		it.Display(window);
 	}
+
+	sf::Text tmp = CreateText(std::to_string(static_cast<int>(Timer)), font, 50);
+	tmp.setPosition(960, 100);
+	tmp.setFillColor(sf::Color::Black);
+	window->draw(tmp);
 }

@@ -14,6 +14,7 @@ int main()
 
 	Gestion Gestionnaire;
 	Gestionnaire.Init(port);
+	srand(time(NULL));
 
 	Times time;
 

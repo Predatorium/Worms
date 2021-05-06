@@ -66,7 +66,6 @@ bool Button::Update(sf::RenderWindow* _window)
 		Set_ColorText(In);
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 			f();
-			Click = true;
 			return true;
 		}
 	}

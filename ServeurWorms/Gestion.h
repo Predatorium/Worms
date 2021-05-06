@@ -15,6 +15,7 @@ enum Type
 	Add_Worms,
 	Delete_Worms,
 	EXPLO,
+	ChangeTurn,
 };
 enum State { Waiting, Game };
 

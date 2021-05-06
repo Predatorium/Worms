@@ -52,3 +52,18 @@ template<typename T1, typename T3>
 [[nodiscard]] inline float distance(sf::Vector2f x, sf::Vector2f y)noexcept {
 	return length(x - y);
 }
+
+[[nodiscard]] inline sf::ConvexShape line(sf::Color col, sf::Color ouC, float ouT, sf::Vector2f dirT, sf::Vector2f dirR)noexcept
+{
+	sf::ConvexShape convex;
+	convex.setPointCount(4);
+	convex.setFillColor(col);
+	convex.setOutlineColor(ouC);
+	convex.setOutlineThickness(ouT);
+	convex.setPoint(0, dirT);
+	convex.setPoint(1, dirR);
+	convex.setPoint(2, dirR);
+	convex.setPoint(3, dirT);
+
+	return convex;
+}

@@ -16,7 +16,7 @@ public:
 	bool Get_Life() { return Life; }
 	sf::Vector2f Get_Position() { return Shape.getPosition(); }
 	float Get_Radius() { return Shape.getRadius(); }
-	void Affect_Damage(std::vector<OtherPlayer>& joueurs, Joueur& player);
+	void Affect_Damage(Joueur& player);
 
 	void Update(const float& dt);
 	void Display(sf::RenderWindow* window);

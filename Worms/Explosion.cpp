@@ -9,13 +9,9 @@ Explosion::Explosion(sf::Vector2f pos, float radius, int damage)
 	Shape.setFillColor(sf::Color::Red);
 }
 
-void Explosion::Affect_Damage(std::vector<OtherPlayer>& joueurs, Joueur& player)
+void Explosion::Affect_Damage(Joueur& player)
 {
-	for (auto& it : joueurs) {
-		it.Damage(-this->Damage, Shape.getPosition(), Shape.getRadius());
-	}
-
-	player.Damage(-this->Damage, Shape.getPosition(), Shape.getRadius());
+	player.Damage(-this->Damage, Shape);
 }
 
 void Explosion::Update(const float& dt)

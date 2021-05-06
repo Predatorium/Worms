@@ -32,7 +32,6 @@ protected:
 
 	sf::Color Out;
 	sf::Color In;
-	bool Click{ false };
 
 	std::function<void()> f;
 };

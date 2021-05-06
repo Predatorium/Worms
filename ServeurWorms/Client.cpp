@@ -83,7 +83,7 @@ void Client::CheckPacket(std::vector<Client*>& client)
 		}
 		if (type == Update_Pos) {
 			int WormsId;
-			int life;
+			int life = 100;
 			receivePacket >> WormsId;
 			for (int i = 0; i < Worms.size(); i++) {
 				if (WormsId == Worms[i].second) {
@@ -107,6 +107,33 @@ void Client::CheckPacket(std::vector<Client*>& client)
 				if (client[j] != this) {
 					client[j]->socket->send(sendPacket);
 				}
+			}
+		}
+		if (type == ChangeTurn) {
+			
+			int next = Id;
+			int Vent = (rand() % 21) - 10;
+
+			for (int j = 0; j < client.size(); j++) {
+				if (client[j]->Id > next) {
+					next = client[j]->Id;
+					break;
+				}
+			}
+
+			if (next == Id) {
+				for (int j = 0; j < client.size(); j++) {
+					if (client[j]->Id < next) {
+						next = client[j]->Id;
+					}
+				}
+			}
+
+			sf::Packet sendPacket;									// Déclaration d'un packet
+			sendPacket << state << ChangeTurn << next << Vent;
+
+			for (int j = 0; j < client.size(); j++) {
+				client[j]->socket->send(sendPacket);
 			}
 		}
 		if (type == Disconnect) {
